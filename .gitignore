@@ -1,0 +1,6 @@
+# Hidden Files
+.*
+!.gitignore
+!.gitmodules
+# Compiled LSL Files
+*.lsl

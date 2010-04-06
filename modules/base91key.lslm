@@ -1,0 +1,66 @@
+$module ()
+$import fksllib.modules.base91.lslm ();
+
+string EncodeKey(key id)
+{
+    list parts = llParseString2List( id , ["-"], []);
+    integer len = 0;
+    string i;
+    integer ONE;
+    integer TWO;
+    integer THREE;
+    integer FOUR;
+    
+    integer part;
+    while( parts != [] )
+    {
+        ++part;
+        if( part == 1 || part == 2  || part == 4)
+        {
+            i = "0x" + llList2String(parts,0);
+            if( part == 1 ) 
+                ONE = (integer)i;
+        }
+        if( part == 3 )
+        {
+            i += llList2String(parts,0);
+            TWO = (integer)i;
+        }
+        if( part == 5 )
+        {
+            string s = llList2String(parts,0);
+            i += llGetSubString(s,0,3);
+            THREE = (integer)i;
+            i = "0x" + llGetSubString(s,4,-1);
+            FOUR = (integer)i;
+        }
+        parts = llDeleteSubList(parts,0,0);
+    }
+    return IntToBase91(ONE) + IntToBase91(TWO) + IntToBase91(THREE) + IntToBase91(FOUR);
+}
+
+string hex(integer bits)
+{
+	string HEX_DIGETS="0123456789abcdef";
+    string nybbles = "";
+    do
+    {
+        integer lsn = bits & 0xF; // least significant nybble
+        nybbles = llGetSubString(HEX_DIGETS, lsn, lsn) + nybbles;
+    } while (bits = (0xfffFFFF & (bits >> 4)));    
+    return nybbles;
+}
+
+key DecodeKey(string enc)
+{
+    integer ONE = FromBase91ToInt(llGetSubString(enc,0,4));
+    integer TWO = FromBase91ToInt(llGetSubString(enc,5,9));
+    integer THREE = FromBase91ToInt(llGetSubString(enc,10,14));
+    integer FOUR = FromBase91ToInt(llGetSubString(enc,15,-1));
+    
+    string kaa = llGetSubString(enc,15,-1);
+    string lka = (string)llStringLength(kaa);
+    
+    string k = hex(ONE) + hex(TWO) + hex(THREE) + hex(FOUR); 
+    return llGetSubString(k,0,7)+"-"+llGetSubString(k,8,11)+"-"+llGetSubString(k,12,15)+"-"+llGetSubString(k,16,19)+"-"+llGetSubString(k,20,-1);
+}

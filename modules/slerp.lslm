@@ -1,0 +1,9 @@
+$module ()
+
+//Returns a Spherical Linear Interpolation between two rotations
+rotation slerp( rotation start, rotation end, float t ) {
+    float angleBetween = llAngleBetween(start, end);
+    if ( angleBetween > PI )
+        angleBetween = angleBetween - TWO_PI;
+    return start*llAxisAngle2Rot(llRot2Axis(end/start)*start, angleBetween*t);
+}

@@ -1,0 +1,86 @@
+$module ()
+
+//Converts a floating point number into integer representation
+//using the IEEE-754 standard
+integer Float2IEEE(float fp)
+{
+	if( fp == 0.0 ) return 0; //Zero Shortcut
+	
+	integer EXP_BIAS = 127;
+	float LOG_OF_2 = 0.30102999566398119521373889472449;
+	
+	//Establish the sign of the float
+	integer SIGN = (fp < 0) & 0x1;
+	
+	integer MANTISSA;
+	integer EXP;
+	
+	//Logs don't work too well with negative numbers ;)
+	fp = llFabs(fp);
+	
+	//Recover exponent portion of the floating point
+	EXP = ( EXP_BIAS + llFloor( llLog10(fp) / LOG_OF_2 ) ) & 0xFF;
+	
+	//Normalize (implies a leading 1)
+	fp /= llPow(2,EXP-EXP_BIAS);
+	//Get the Mantissa
+	integer BYTES = 7;
+	while(BYTES)
+	{
+		MANTISSA = (MANTISSA << 4) | ( llFloor(fp) & 0xFF ); //Load current hex diget
+		fp = (fp-llFloor(fp))*16; //Shift next hext diget
+		--BYTES;
+	}
+
+	//Trim Mantissa to 23 bits (chop leading 1)
+	MANTISSA = (MANTISSA & 0x0FFFFFF) >> 1;
+	
+	//Assemble and return float in IEEE-754 format
+	return (SIGN << 31) | (EXP << 23)  | MANTISSA;
+}
+
+//Converts a IEEE-754 standard hex representation of a float
+//Into a regular SecondLife float
+float IEEE2Float(integer ieee)
+{
+	integer EXP_BIAS = 127;
+	integer EXP = (ieee >> 23) & 0xFF;
+	integer SIGN = (ieee & 0x80000000) >> 31;
+	integer MANTISSA = (ieee & 0x7FFFFF) << 1;
+	
+	//Special Floats
+	if( EXP == 0x00 )
+	{
+		if( MANTISSA == 0 ) {
+			if(SIGN) return -0.0;
+			return 0.0;
+		}
+	} else if( EXP == 0xFF )
+	{
+		if( MANTISSA != 0 ) return (float)"0x1.1p255"; //NaN
+		else {
+			if(SIGN) return (float)"-0x1.0p255"; //Infinity
+			return (float)"0x1.0p255"; //-Infinity
+		}
+	}
+	
+	integer BYTES = 6;
+	float fp = 0;
+	
+	//Reconstruct mantissa (in decimal)
+	while( BYTES )
+	{
+		fp = (fp+(MANTISSA&0xF)) / 16.0;
+		MANTISSA = MANTISSA >> 4;
+		--BYTES;
+	}
+	
+	
+	//Add leading 1 if normalized
+	if( EXP != 0x00 ) fp += 1;
+
+	fp = fp * llPow(2,EXP-EXP_BIAS);
+	
+	if( SIGN ) return -fp;
+	return fp;
+}

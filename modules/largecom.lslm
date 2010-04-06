@@ -1,0 +1,136 @@
+$module (integer CHANNEL)
+$import fksllib.modules.base91.lslm();
+// -- CONSTANTS -- //
+string DIVIDER = "|";
+integer HEADER_LENGTH = 19;
+integer MAX_LENGTH = 1024;
+
+// -- GLOBALS --//
+integer MYID = FALSE;
+integer gListenHandle;
+string LAST_MESSAGE;
+list RBUFFER;
+
+LCOMM_XMT(string message, integer message_id, integer target)
+{
+	//Get the message length
+	integer message_length = llStringLength(message);
+	integer len = MAX_LENGTH - HEADER_LENGTH;
+	//Find out how many messages (pages) need to be sent
+	string STR_PAGE;
+	integer MAX_PAGE = llCeil( (float)message_length / len);
+	
+	//Create the preliminary header
+	string HEADER = 
+		        IntToBase91( target ) + DIVIDER + 
+		        IntToBase91( message_id ) + DIVIDER + 
+		        IntToBase91( message_length ) + DIVIDER + 
+		        IntToBase91( MAX_PAGE );
+	integer PAGE = 0;
+
+	//Send each page out
+	for(PAGE = 0; PAGE < MAX_PAGE; ++PAGE)
+	{
+		//Append the page number
+		STR_PAGE = IntToBase91(PAGE);
+		//Send message packet
+		llRegionSay(CHANNEL,HEADER + DIVIDER + STR_PAGE + DIVIDER + llGetSubString(message,0,len-1));
+		//Chop the sent portion of the message off
+		message = llDeleteSubString(message,0,len-1);
+	}
+}
+integer LCOMM_RCV(string msg)
+{
+	return LCOMM_RCV_MSG(msg,FALSE);
+}
+integer LCOMM_RCV_MSG(string msg, integer store)
+{
+	list RB = llParseString2List(msg,["|"],[]);
+	if( llGetListLength(RB) < 6 ) return FALSE;
+	//Get Parameters
+	integer target          = FromBase91ToInt( llList2String(RB,0) );
+	if( target != FALSE && target != MYID ) return FALSE;
+	integer message_id      = FromBase91ToInt( llList2String(RB,1) );
+	integer message_length  = FromBase91ToInt( llList2String(RB,2) );
+	integer MAX_PAGE        = FromBase91ToInt( llList2String(RB,3) );
+	integer PAGE            = FromBase91ToInt( llList2String(RB,4) );         RB = llDeleteSubList(RB,0,4);
+	string  MSG             = llDumpList2String(RB,DIVIDER);
+	RB = [];
+	//Find Message Buffer
+	integer i = llListFindList(RBUFFER,[message_id]);
+	//Message Buffer Not Found
+	if( i == -1 )
+	{
+		//Create New Buffer
+		RBUFFER += [message_id];
+		for( i = 0; i < MAX_PAGE; ++i)
+		{
+			if( i == PAGE ) RBUFFER += [MSG];
+			else RBUFFER += [FALSE];
+		}
+		i = llListFindList(RBUFFER,[message_id]);
+	}
+	
+		//Insert message in the right spot            
+		RBUFFER = llListReplaceList(RBUFFER,[MSG],i+1+PAGE,i+1+PAGE);
+		integer start = i+1;
+		integer end = start + MAX_PAGE-1;
+		
+		//Check for gaps
+		for(i=start; i <= end; ++i)
+		{
+			//Gap, not done
+			if( llGetListEntryType(RBUFFER,i) != TYPE_STRING ) {
+			    return FALSE;
+			}
+		}
+		
+		//No Gaps, all message received
+		//Concat all messages
+		MSG = (string)llList2List(RBUFFER,start,end);
+		
+		//Send out link message (if message lengths match)
+		if( message_length == llStringLength(MSG) ) {
+			if( store ) {
+				LAST_MESSAGE = MSG;
+			} else {
+				llMessageLinked(LINK_SET,message_id,MSG,"#mrec#");
+			}
+			RBUFFER = llDeleteSubList(RBUFFER,start-1,end);
+			return TRUE;
+		}
+		
+		//Otherwise, send out failure notification
+		else llMessageLinked(LINK_SET,message_id,(string)message_length + " != " + (string)llStringLength(MSG),"#mfail#");
+		
+		//Clear Buffer            
+		RBUFFER = llDeleteSubList(RBUFFER,start-1,end);
+	return FALSE;
+}
+
+//Setup this prim for messages
+LCOMM_INIT(integer id, integer chan)
+{
+	MYID = id;
+	CHANNEL = chan;
+	llListenRemove(gListenHandle);
+	gListenHandle = llListen(CHANNEL,"","","");
+}
+
+SetupLargeCom(integer id)
+{
+	llMessageLinked(LINK_SET,id,(string)CHANNEL,"#msetup#");
+}
+
+SendLargeMessage(string message)
+{
+	SendLargeMessageTargeted(message,FALSE);
+}
+
+SendLargeMessageTargeted(string message, integer target)
+{
+	integer messageid = llFloor( llFrand( 1000000 ) + 1000000 );
+	string command = "#msend#";
+	if( target ) command += (string)target;
+	llMessageLinked(LINK_SET,messageid,message,command);
+}

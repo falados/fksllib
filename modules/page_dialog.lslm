@@ -1,0 +1,22 @@
+$module ()
+
+//To be used with dialog.lib
+
+//Sends a dialog to the agent
+//Returns the dialog ID
+integer SendDialog(key agent,string message,list buttons)
+{
+	integer id = llFloor(llFrand(DEBUG_CHANNEL-1)) + 1;
+	llMessageLinked(LINK_SET,id,llList2CSV([agent,message] + buttons),"#dialog#");
+	return id;
+}
+
+//Sends adialog to the agent using an annotated button description
+integer SendDialogAnnotated(key agent, string message, list dialog)
+{
+    return SendDialog( 
+    	agent, 
+    	message + llDumpList2String( llList2ListStrided(dialog,0,-1,2) , "\n"), 
+    	llList2ListStrided( llDeleteSubList(dialog,0,0), 0,-1,2)
+	);
+}

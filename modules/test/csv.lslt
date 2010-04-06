@@ -1,0 +1,36 @@
+<tests>
+  <lsl-test>
+    <name>List2CSV</name>
+    <entryPoint>
+      <fileName>Modules.csv.lslm</fileName>
+      <path>List2TypedCSV</path>
+    </entryPoint>
+    <arguments>
+      <lsl-list1>[&quot;string&quot;,1,1.00,&lt;1,1,1&gt;,&lt;1,1,1,1&gt;]</lsl-list1>
+    </arguments>
+    <expectedReturn/>
+    <expectations>
+      <mode>nice</mode>
+      <calls/>
+    </expectations>
+    <initialBindings/>
+    <finalBindings/>
+  </lsl-test>
+  <lsl-test>
+    <name>CSV2List</name>
+    <entryPoint>
+      <fileName>Modules.csv.lslm</fileName>
+      <path>TypedCSV2List</path>
+    </entryPoint>
+    <arguments>
+      <lsl-string>&quot;$#%342156|String, 4d6bdc5d-2ee3-f98d-3554-e189cf8a334d, 1.100000, 20, &lt;137.654312, 166.695007, 26.941782&gt;, &lt;-0.059164, -0.244556, 0.049476, 0.966563&gt;&quot;</lsl-string>
+    </arguments>
+    <expectedReturn/>
+    <expectations>
+      <mode>nice</mode>
+      <calls/>
+    </expectations>
+    <initialBindings/>
+    <finalBindings/>
+  </lsl-test>
+</tests>

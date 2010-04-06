@@ -1,0 +1,83 @@
+$module ()
+
+integer CHAIN_ALL = -1;
+integer gMyNumber;
+integer gIsLast;
+string gBaseName;
+
+//Sets up the chain link
+Initialize()
+{
+		//The last token is the number
+    	gBaseName = llGetScriptName();
+		gMyNumber = llList2Integer(llParseString2List(gBaseName,[" "],[]),-1);
+
+		//Trims off the number at the end of the script name
+		if( gMyNumber > 0) {
+			gBaseName = llGetSubString(gBaseName,0,-3-(integer)llLog10(gMyNumber));
+		}
+
+		//Is this the last storage script? (No otheres ahead)
+		if( llGetInventoryType(gBaseName + " " + (string)(gMyNumber+1)) != INVENTORY_SCRIPT )
+			gIsLast = TRUE;
+}
+
+integer IsTargetMe(integer num, key id)
+{
+	if( llSubStringIndex(id,gBaseName) != 0 && llSubStringIndex(id,"All") != 0) {
+		return FALSE;
+	}
+	if( num == gMyNumber || num == CHAIN_ALL) return TRUE;
+	return FALSE;
+}
+
+// Gets the command portion of the link message id
+// pragma inline
+string GetCommand(key id)
+{
+	return llGetSubString(id,llStringLength(gBaseName),-1);
+}
+
+// Processes the link message
+// Returns true if the link message was handled
+// Returns false if the link message was not handled
+integer ProcessLinkMessage(integer sn, integer num, string str, key id)
+{
+	if( !IsTargetMe(num,id) ) return FALSE;
+	string command = GetCommand(id);
+	
+	if( command == "#get-chain-max#" && gIsLast )
+	{
+		llMessageLinked(sn,gMyNumber+1,gBaseName,"#chain-max#");
+		return TRUE;
+	}
+	if( command == "#chain-reset#" )
+	{
+		if( num == gMyNumber || num == CHAIN_ALL ) llResetScript();
+	}
+	if( command == "#chain-ping#" )
+	{
+		if( num == gMyNumber || num == CHAIN_ALL) 
+		{
+			llMessageLinked(sn,gMyNumber,"","#chain-pong#");
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+//Sends a command to a specific link in the chain
+SendCommand(integer target, string params, string command)
+{
+	llMessageLinked(LINK_THIS,target,params,gBaseName + command);
+}
+
+//Delegate a command down the chain
+// Returns true if the delegation was successful
+// Otherwise, it returns false
+integer DelegateCommand(string params, string command)
+{
+	if( gIsLast ) return FALSE;
+	SendCommand(gMyNumber+1,params,command);
+	return TRUE;
+}

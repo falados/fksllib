@@ -1,0 +1,30 @@
+$module (integer list_max)
+
+WarpPos(vector pos)
+{
+    list warppos = [];
+    vector topos = llGetPos();
+    vector dir;
+    integer max = list_max;
+    integer count;
+    while( topos != pos )
+    {
+        ++count;
+        if( count < max) {
+            if(llVecMag(pos - topos) <= 10)
+            {
+                warppos = (warppos = []) + warppos + [PRIM_POSITION,pos];
+                topos = pos;
+            } else {
+                dir = llVecNorm(pos - topos);
+                topos += dir*10;
+                warppos = (warppos = []) + warppos + [PRIM_POSITION,topos];
+            }
+        } else {
+            llSetPrimitiveParams(warppos);
+            warppos = [];
+            count = 0;
+        }
+    }
+    llSetPrimitiveParams(warppos);    
+}

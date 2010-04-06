@@ -1,0 +1,154 @@
+<tests>
+  <lsl-test>
+    <name>Encode Neg</name>
+    <entryPoint>
+      <fileName>Library.base91.lslm</fileName>
+      <path>EncodeInt</path>
+    </entryPoint>
+    <arguments>
+      <lsl-integer>-1</lsl-integer>
+    </arguments>
+    <expectedReturn>
+      <val class="lsl-string">&quot;~!!!#&quot;</val>
+    </expectedReturn>
+    <expectations>
+      <mode>nice</mode>
+      <calls/>
+    </expectations>
+    <initialBindings/>
+    <finalBindings/>
+  </lsl-test>
+  <lsl-test>
+    <name>Decode Neg</name>
+    <entryPoint>
+      <fileName>Library.base91.lslm</fileName>
+      <path>DecodeStr</path>
+    </entryPoint>
+    <arguments>
+      <lsl-string>&quot;~!!!#&quot;</lsl-string>
+    </arguments>
+    <expectedReturn>
+      <val class="lsl-integer">-1</val>
+    </expectedReturn>
+    <expectations>
+      <mode>nice</mode>
+      <calls/>
+    </expectations>
+    <initialBindings/>
+    <finalBindings/>
+  </lsl-test>
+  <lsl-test>
+    <name>Encode Pos</name>
+    <entryPoint>
+      <fileName>Library.base91.lslm</fileName>
+      <path>EncodeInt</path>
+    </entryPoint>
+    <arguments>
+      <lsl-integer>0x2B5B4FF</lsl-integer>
+    </arguments>
+    <expectedReturn>
+      <val class="lsl-string">&quot;!_@#$&quot;</val>
+    </expectedReturn>
+    <expectations>
+      <mode>nice</mode>
+      <calls/>
+    </expectations>
+    <initialBindings/>
+    <finalBindings/>
+  </lsl-test>
+  <lsl-test>
+    <name>Decode Pos</name>
+    <entryPoint>
+      <fileName>Library.base91.lslm</fileName>
+      <path>DecodeStr</path>
+    </entryPoint>
+    <arguments>
+      <lsl-string>&quot;!_@#$&quot;</lsl-string>
+    </arguments>
+    <expectedReturn>
+      <val class="lsl-integer">0x2B5B4FF</val>
+    </expectedReturn>
+    <expectations>
+      <mode>nice</mode>
+      <calls/>
+    </expectations>
+    <initialBindings/>
+    <finalBindings/>
+  </lsl-test>
+  <lsl-test>
+    <name>Encode 0</name>
+    <entryPoint>
+      <fileName>Library.base91.lslm</fileName>
+      <path>EncodeInt</path>
+    </entryPoint>
+    <arguments>
+      <lsl-integer>0</lsl-integer>
+    </arguments>
+    <expectedReturn>
+      <val class="lsl-string">&quot;!!!!!&quot;</val>
+    </expectedReturn>
+    <expectations>
+      <mode>nice</mode>
+      <calls/>
+    </expectations>
+    <initialBindings/>
+    <finalBindings/>
+  </lsl-test>
+  <lsl-test>
+    <name>Decode 0</name>
+    <entryPoint>
+      <fileName>Library.base91.lslm</fileName>
+      <path>DecodeStr</path>
+    </entryPoint>
+    <arguments>
+      <lsl-string>&quot;!!!!!&quot;</lsl-string>
+    </arguments>
+    <expectedReturn>
+      <val class="lsl-integer">0</val>
+    </expectedReturn>
+    <expectations>
+      <mode>nice</mode>
+      <calls/>
+    </expectations>
+    <initialBindings/>
+    <finalBindings/>
+  </lsl-test>
+  <lsl-test>
+    <name>Encode 0x80000000</name>
+    <entryPoint>
+      <fileName>Library.base91.lslm</fileName>
+      <path>EncodeInt</path>
+    </entryPoint>
+    <arguments>
+      <lsl-integer>0x80000000</lsl-integer>
+    </arguments>
+    <expectedReturn>
+      <val class="lsl-string">&quot;~!!!!&quot;</val>
+    </expectedReturn>
+    <expectations>
+      <mode>nice</mode>
+      <calls/>
+    </expectations>
+    <initialBindings/>
+    <finalBindings/>
+  </lsl-test>
+  <lsl-test>
+    <name>Decode  0x80000000</name>
+    <entryPoint>
+      <fileName>Library.base91.lslm</fileName>
+      <path>DecodeStr</path>
+    </entryPoint>
+    <arguments>
+      <lsl-string>&quot;~!!!!&quot;</lsl-string>
+    </arguments>
+    <expectedReturn>
+      <val class="lsl-integer">0x80000000</val>
+    </expectedReturn>
+    <expectations>
+      <mode>nice</mode>
+      <calls/>
+    </expectations>
+    <initialBindings/>
+    <finalBindings/>
+  </lsl-test>
+</tests>

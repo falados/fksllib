@@ -1,0 +1,22 @@
+$module ()
+
+integer ParcelDangerZone(vector pos, key group)
+{
+	integer pf = llGetParcelFlags(pos);
+	if( pf & (PARCEL_FLAG_ALLOW_SCRIPTS | PARCEL_FLAG_ALLOW_CREATE_OBJECTS ) )
+	{
+		return FALSE;
+	}
+	list pd = llGetParcelDetails( pos , [PARCEL_DETAILS_OWNER,PARCEL_DETAILS_GROUP]);
+	if( llList2Key(pd,1) == group )
+	{
+		if( pf & (PARCEL_FLAG_ALLOW_GROUP_SCRIPTS|PARCEL_FLAG_ALLOW_CREATE_GROUP_OBJECTS) )
+		{
+			return FALSE;
+		}
+	}
+	
+	if( llList2Key( pd , 0 ) == llGetOwner() ) { return FALSE; }
+	
+	return TRUE;
+}

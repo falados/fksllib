@@ -1,0 +1,123 @@
+$module (string NEXT_BUTTON, string BACK_BUTTON, string CANCEL_BUTTON)
+// -- Globals -- //
+integer gStartIndex;
+integer gEndIndex;
+integer gDialogNumber;
+integer gDialogChannel;
+integer gListenHandle_Dialog;
+integer gMaxPages;
+integer gCurrentPage;
+key gDialogTarget;
+string gDialogMessage;
+list gAllOptions;
+list gCurrentSelection;
+list gCurrentPanel;
+
+dialog() 
+{
+    if( gCurrentPage < 0 ) gCurrentPage = 0;
+    if( gCurrentPage > gMaxPages ) gCurrentPage = gMaxPages;
+
+    gStartIndex = 0;
+    gEndIndex = -1;
+    if( gCurrentPage == 0 ) {
+        if( gCurrentPage == gMaxPages )
+            gCurrentPanel = llList2List(gAllOptions,0,-1);
+        else {
+            gEndIndex = 10;
+            gCurrentPanel = llList2List(gAllOptions,0,1) + [NEXT_BUTTON] + llList2List(gAllOptions,2,gEndIndex);
+        }
+    }
+    else if( gCurrentPage == gMaxPages) {
+        gStartIndex = 11 + 10*(gMaxPages-1);
+        gEndIndex = -1;
+        gCurrentPanel = [BACK_BUTTON] + llList2List(gAllOptions,gStartIndex,gEndIndex);        
+    } else {
+        gStartIndex = 11 + 10*(gCurrentPage-1);
+        gEndIndex = gStartIndex + 9;
+        gCurrentPanel = [BACK_BUTTON] + llList2List(gAllOptions,gStartIndex,gStartIndex) + [NEXT_BUTTON] + llList2List(gAllOptions,gStartIndex+1,gEndIndex);
+    }
+    gCurrentSelection = gCurrentPanel;
+    integer len = llGetListLength(gCurrentPanel);
+    integer i;
+    string item;
+    for( i = 0; i < len; ++i)
+    {
+        item = llList2String(gCurrentPanel,i);
+        if( llStringLength( item ) > 24 ) 
+        {
+            gCurrentPanel = llListReplaceList( gCurrentPanel , [llGetSubString(item,0,23)],i,i);
+        }
+        
+    }
+    
+    llDialog(gDialogTarget,gDialogMessage,gCurrentPanel,gDialogChannel);
+}
+
+start_dialog(integer num,key target,string message,list options)
+{
+	gDialogNumber = num;
+	gDialogChannel = llFloor(llFrand(1e7)+1e7);
+	gDialogTarget = target;
+	gDialogMessage = message;
+	
+	//Removed previous listen so that we dont keep making new handles
+	//This does however nix the previous dialog response
+	llListenRemove(gListenHandle_Dialog);
+	gListenHandle_Dialog = llListen(gDialogChannel,"",gDialogTarget,"");
+	gAllOptions = options;
+            
+	gCurrentPage = 0;
+	gMaxPages = 0;
+	integer n = llGetListLength(gAllOptions);
+	
+	integer gMaxOptions = 12;
+	
+	if( n > 12 )
+	{
+		//First Page
+		n -= 11;
+		
+		//Middle Pages
+		while(n > 11) 
+		{
+			n-=10;
+			++gMaxPages;
+		}
+		//Last Page
+		++gMaxPages;
+	}
+}
+
+// --- Call from the `link_message` event
+DIALOG_LINK_MESSAGE(integer sn, integer num, string str, key id)
+{
+	if(id == "#dialog#")
+	{
+    	dialog();
+	}	
+}
+
+// --- Call from the `listen` Event
+DIALOG_LISTEN(integer channel, string name, key id, string str)
+{
+	llListenRemove(gListenHandle_Dialog);
+    if(str == NEXT_BUTTON)
+    {
+        ++gCurrentPage;
+        dialog();
+    }else if( str == BACK_BUTTON )
+    {
+        --gCurrentPage;
+        dialog();
+    } else {
+        integer i = llListFindList(gCurrentPanel,[str]);
+        if( i != -1)
+        {
+            string result = llList2String(gCurrentSelection,i);
+            llMessageLinked(LINK_SET,gDialogNumber,result,"#dialog-response#");
+        } else {
+            dialog();
+        }
+    }
+}

@@ -1,0 +1,46 @@
+$module (integer MAX_N)
+
+integer FACTORIAL_N = 0;
+integer LAST_N=-1;
+
+// Factorial (!) function : n(n-1)(n-2)...(1)
+integer factorial(integer n)
+{
+    if( n == 0 || n == 1) return 1;
+    if( n > MAX_N) 
+    {
+        llSay(DEBUG_CHANNEL,"Factorial size too big : " + (string)n + "!\nLimited to " + (string)MAX_N +"!");
+        return 1; //Error Out with MATH ERROR
+    }
+    return n * factorial(n-1);
+}
+
+// Mathematical nCr function = n! / (c! * (n-c)!)
+integer nCr(integer n, integer c)
+{
+	//Caching a commonly executed factorial
+    if(LAST_N != n || FACTORIAL_N == 0)
+    {
+        LAST_N = n;
+        FACTORIAL_N = factorial(n);
+    }
+    return FACTORIAL_N / ( factorial(c) * factorial(n-c) );
+}
+
+//Returns a point along a bezier curve controlled by [points]
+// points - the control points
+// t - the section along the curve (0..1)
+vector bezier(list points, float t)
+{
+	integer n = llGetListLength(points) - 1;
+	if( n == 0 ) return llList2Vector(points,0);
+	integer i;
+	// B(t) = SUM( i = 0 to n , b(i,n) * Pi )
+	// b(i,n) = nCr(n,i) * t^i * (1-t)^(n-i)
+	vector B = ZERO_VECTOR;
+	for( i = 0; i <= n; ++i)
+	{
+		B += ( nCr(n,i) * llPow(t,i) * llPow(1-t,n-i) ) * llList2Vector(points,i);
+	}
+	return B;
+}

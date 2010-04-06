@@ -1,0 +1,43 @@
+$module ()
+
+$import fksllib.modules.base91.lslm();
+$import fksllib.modules.ieee_floats.lslm ();
+$import fksllib.modules.base91key.lslm ();
+
+string EncodeFloat(float fp)
+{
+	return IntToBase91( Float2IEEE( fp ) );
+}
+
+string EncodeList(list values)
+{
+	list encoded;
+	while( values != [] )
+	{
+		integer TYPE = llGetListEntryType(values,0);
+		if( TYPE == TYPE_FLOAT )
+		{
+			encoded += [EncodeFloat( llList2Float(values,0) )];
+		} else if (TYPE == TYPE_STRING )
+		{
+			encoded += llList2String(values,0);
+		} else if (TYPE == TYPE_KEY )
+		{
+			encoded += [EncodeKey(llList2Key(values,0))];
+		} else if (TYPE == TYPE_VECTOR )
+		{
+			vector v = llList2Vector(values,0);
+			encoded += [EncodeFloat(v.x) + EncodeFloat(v.y) + EncodeFloat(v.z)];
+		} else if (TYPE == TYPE_ROTATION )
+		{
+			rotation r = llList2Rot(values,0);
+			encoded += [EncodeFloat(r.x) + EncodeFloat(r.y) + EncodeFloat(r.z) + EncodeFloat(r.s)];			
+		} else if (TYPE == TYPE_INTEGER )
+		{
+			encoded += [IntToBase91(llList2Integer(values,0))];
+		}
+		values = llDeleteSubList(values,0,0);
+	}
+	return llDumpList2String(encoded,"|");
+}
+

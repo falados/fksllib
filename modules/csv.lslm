@@ -1,0 +1,52 @@
+$module ()
+string TYPED_CSV_HEADER = "$#%";
+integer TYPED_CSV_HEADER_LEN = 3;
+string List2TypedCSV(list l)
+{
+	integer i;
+	integer len = llGetListLength(l);
+	string types;
+	for( i = 0; i < len; ++i)
+	{
+		types += (string)llGetListEntryType(l,i);
+	}
+	return TYPED_CSV_HEADER + types + "|" + llList2CSV(l);
+}
+
+list TypedCSV2List(string csv)
+{
+	if( llGetSubString(csv,0,TYPED_CSV_HEADER_LEN-1) != TYPED_CSV_HEADER)
+		return llCSV2List(csv);
+	
+	integer t = llSubStringIndex(csv,"|");
+	list values = llCSV2List(llGetSubString(csv,t+1,-1));
+	
+	list typed_list = [];
+	integer i;
+	integer len = llGetListLength(values);
+	string value;
+	for( i = 0; i < len; ++i )
+	{
+		t = (integer)llGetSubString(csv,TYPED_CSV_HEADER_LEN+i,TYPED_CSV_HEADER_LEN+i);
+		value=llList2String(values,i);
+		if( t == TYPE_ROTATION )
+		{
+			typed_list += (rotation)value;
+		} else if( t == TYPE_VECTOR )
+		{
+			typed_list += (vector)value;
+		} else if( t == TYPE_FLOAT )
+		{
+			typed_list += (float)value;
+		} else if( t == TYPE_INTEGER )
+		{
+			typed_list += (integer)value;
+		} else if( t == TYPE_KEY )
+		{
+			typed_list += (key)value;
+		} else {
+			typed_list += value;
+		}
+	}
+	return typed_list;
+}

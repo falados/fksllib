@@ -1,0 +1,62 @@
+$module ()
+
+// -- CONSTANTS -- //
+string DIGETS = "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{}~";
+string POS_D = "!!!!!";
+integer DIGETS_LEN = 91;
+
+//Encodes and integer into a base91 string
+string IntToBase91(integer length)
+{
+    string slen = "";
+    integer index;
+    integer NEG = (length < 0);
+    if(NEG) length*=-1;
+    
+    while(length > 0)
+    {
+        index = length % DIGETS_LEN;
+        slen = llGetSubString(DIGETS,index,index) + slen;
+        length /= DIGETS_LEN;
+    }
+    integer len = llStringLength(slen); 
+    if( len < 5 )
+    {
+    	slen = llGetSubString(POS_D,0,5-len-1) + slen;
+    }
+    if(NEG)
+    {
+    	index = DIGETS_LEN - llSubStringIndex(DIGETS,llGetSubString(slen,0,0))-1;
+    	slen = llGetSubString(DIGETS,index,index) + llDeleteSubString(slen,0,0);
+    }   
+    return slen;
+}
+
+
+//Decodes an integer from the base91 string
+integer FromBase91ToInt(string length)
+{
+	if(length == "~!!!!") return -DEBUG_CHANNEL-1;
+    integer len;
+    integer pow = 1;
+    integer index;
+    integer POS = TRUE;
+    while(length != "")
+    {
+        index = llSubStringIndex(DIGETS, llGetSubString(length,-1,-1));
+        if(index == -1) return -1;
+        if( llStringLength(length) == 1) {
+        	if( index > 32 )
+        	{
+        		POS = FALSE;
+				index = DIGETS_LEN - index - 1;
+        	}
+        	length = "";
+        } else {
+        	length = llGetSubString(length,0,-2);
+        }
+        len += index*pow;
+        pow *= DIGETS_LEN;
+    }
+    return len * (POS*2-1);
+}
